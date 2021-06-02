@@ -1,0 +1,33 @@
+version: '3.7'
+
+volumes:
+  postgres_data:
+
+services:
+  postgres:
+    image: postgres:10-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: ["postgres", "-c", "fsync=false", "-c", "full_page_writes=off"]
+    ports:
+      - 5432:5432
+    env_file:
+      - postgres.env
+
+  redmine:
+    build:
+      context: .
+      dockerfile: redmine.Dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - 3000:3000
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx.Dockerfile
+    depends_on:
+      - redmine
+    ports:
+      - 80:80
